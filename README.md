@@ -55,7 +55,7 @@ I work on infrastructure at **MPMT** (Ministério Público de Mato Grosso), wher
 ## 📫 Contact
 
 <p align="center">
-  <a href="https://www.linkedin.com/in/your-link-here"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" /></a>
+  <a href="https://www.linkedin.com/in/jorge-gabriel-mendes-lana-414bb7366/?isSelfProfile=true"><img src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" /></a>
   <a href="mailto:jorgegmlana@gmail.com"><img src="https://img.shields.io/badge/Email-EA4335?style=for-the-badge&logo=gmail&logoColor=white" /></a>
   <a href="https://buymeacoffee.com/jorgelana"><img src="https://img.shields.io/badge/Buy_me_a_coffee-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=black" /></a>
 </p>
