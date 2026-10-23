@@ -1,10 +1,10 @@
 <!-- Header -->
-<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:5F7FFF,100:7B2FF7&height=200&section=header&text=Jorge%20Lana&fontSize=60&fontColor=ffffff&animation=fadeIn&fontAlignY=38&desc=DevOps%20%E2%80%A2%20Infrastructure%20%E2%80%A2%20Go&descAlignY=58&descSize=18" />
+<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:5F7FFF,100:7B2FF7&height=200&section=header&text=Jorge%20Lana&fontSize=60&fontColor=ffffff&animation=fadeIn&fontAlignY=38&desc=DevOps%20%E2%80%A2%20Infrastructure%20%E2%80%A2%20Python&descAlignY=58&descSize=18" />
 
 <!-- Typing -->
 <p align="center">
   <a href="https://github.com/Jorge-Lana">
-    <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&duration=3000&pause=800&color=7B9BFF&center=true&vCenter=true&width=600&lines=Hi%2C+I'm+Jorge+%F0%9F%91%8B;Junior+DevOps+%2F+Infra+Engineer;Teleport+%E2%80%A2+GitHub+Actions+%E2%80%A2+Go;Learning+Terraform+%2B+AWS+%F0%9F%8C%B1" alt="Typing SVG" />
+    <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&duration=3000&pause=800&color=7B9BFF&center=true&vCenter=true&width=600&lines=Hi%2C+I'm+Jorge+%F0%9F%91%8B;Junior+DevOps+%2F+Infra+Engineer;Teleport+%E2%80%A2+GitHub+Actions+%E2%80%A2+Python;Learning+Terraform+%2B+AWS+%F0%9F%8C%B1" alt="Typing SVG" />
   </a>
 </p>
 
@@ -20,13 +20,14 @@ I work on infrastructure at **MPMT** (Ministério Público de Mato Grosso), wher
 
 - 🔐 Access management with **Teleport**
 - ⚙️ CI/CD with **GitHub Actions**
-- 🐹 **Go** is my main language; **TypeScript** for side projects
+- 🐍 **Python** is my main language
+- 📚 Learning **Go**, **TypeScript** and **JavaScript**
 - 🌱 Currently learning **Terraform + AWS**
 
 ## 🛠️ Tech stack
 
 <p align="center">
-  <img src="https://skillicons.dev/icons?i=go,ts,react,linux,bash,githubactions,terraform,aws,docker,cloudflare,astro&perline=11" alt="tech stack" />
+  <img src="https://skillicons.dev/icons?i=py,go,ts,js,react,linux,bash,githubactions,terraform,aws,docker,cloudflare,astro&perline=13" alt="tech stack" />
 </p>
 
 ## 🚀 Projects
@@ -63,7 +64,7 @@ I work on infrastructure at **MPMT** (Ministério Público de Mato Grosso), wher
 <details>
 <summary>🇧🇷 Resumo em português</summary>
 
-DevOps / infraestrutura júnior em Cuiabá. Trabalho no MPMT, onde implementei o Teleport para acesso seguro e auditado a servidores. Uso Go e TypeScript, automatizo entregas com GitHub Actions e estou estudando Terraform + AWS. O lab do Teleport vai ser publicado aqui em breve.
+DevOps / infraestrutura júnior em Cuiabá. Trabalho no MPMT, onde implementei o Teleport para acesso seguro e auditado a servidores. Python é minha linguagem principal e estou aprendendo Go, TypeScript e JavaScript; automatizo entregas com GitHub Actions e estou estudando Terraform + AWS. O lab do Teleport vai ser publicado aqui em breve.
 
 </details>
 
