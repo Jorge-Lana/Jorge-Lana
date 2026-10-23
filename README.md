@@ -30,6 +30,7 @@ I work on infrastructure at **MPMT** (Ministério Público de Mato Grosso), wher
   <img src="https://skillicons.dev/icons?i=py,go,ts,js,react,linux,bash,githubactions,terraform,ansible,aws,docker,cloudflare,astro&perline=14" alt="tech stack" />
   <br />
   <img src="assets/teleport.svg" height="48" alt="Teleport" title="Teleport" />
+  <img src="assets/packetfence.svg" height="48" alt="PacketFence" title="PacketFence" />
 </p>
 
 ## 🚀 Projects
