@@ -27,7 +27,9 @@ I work on infrastructure at **MPMT** (Ministério Público de Mato Grosso), wher
 ## 🛠️ Tech stack
 
 <p align="center">
-  <img src="https://skillicons.dev/icons?i=py,go,ts,js,react,linux,bash,githubactions,terraform,aws,docker,cloudflare,astro&perline=13" alt="tech stack" />
+  <img src="https://skillicons.dev/icons?i=py,go,ts,js,react,linux,bash,githubactions,terraform,ansible,aws,docker,cloudflare,astro&perline=14" alt="tech stack" />
+  <br />
+  <img src="https://cdn.simpleicons.org/teleport/512FC9" height="48" alt="Teleport" title="Teleport" />
 </p>
 
 ## 🚀 Projects
