@@ -1,157 +1,153 @@
 # GitHub City: review, activation and rollback
 
-## Design
+## Current state
 
-`.github/workflows/city.yml` generates the city daily at **06:23 UTC
-(03:23 America/Sao_Paulo)** and supports `workflow_dispatch`. It runs only for
-`Jorge-Lana/Jorge-Lana` on `main`; there are no push or pull-request triggers.
-Scheduled runs require the workflow on the default branch. GitHub can delay
-schedules and disable them after inactivity in public repositories.
+Phase 1 was committed as `9ad01cca275b983510927cfab81e003663a49b81`, pushed to
+`feat/github-city-profile`, and submitted for independent review in
+[PR #1](https://github.com/Jorge-Lana/Jorge-Lana/pull/1). The review corrections
+update that same PR. The local Phase 2 README edit remains uncommitted and is
+excluded from Phase 1. The Snake workflow and its `output` branch remain intact.
+No successful GitHub-hosted City run has been observed. Phase 1 is not fully
+validated until the real workflow passes; merging and Phase 2 need owner approval.
 
-The read-only `generate` job runs the bundled GitWorld JavaScript, validates the
-SVG, corrects its HUD label from “commits” to “contributions”, and uploads only
-`city-public/gitworld.svg`. It does not install dependencies. The fresh `publish`
-job verifies the file's SHA-256 against the generating job's output and repeats
-SVG validation using a fresh checkout before publishing. It never runs GitWorld.
+## Architecture and permissions
 
-Only `publish` gets `contents: write`. Other unspecified token permissions are
-disabled. The generator gets `contents: read` and checkout does not persist its
-credentials. Publication uses checkout's temporary Git credentials and cleanup.
-No PAT, additional secret, Pages deployment or environment setting is required.
-Only GitHub's built-in `GITHUB_TOKEN` is used.
+`.github/workflows/city.yml` runs daily at **06:23 UTC (03:23 America/Sao_Paulo)**
+and via `workflow_dispatch`, only for `Jorge-Lana/Jorge-Lana` on `main`. There are
+no push/PR triggers. Schedules require the default branch; GitHub may delay runs
+or disable schedules after public-repository inactivity.
 
-Publication creates an orphan **`city-output`** branch on first run, then adds
-ordinary commits to that branch. Only `gitworld.svg` is staged. Unchanged content
-creates no commit; existing other files and history are preserved. Pushes are
-never forced. Network failures and rejected pushes fail the job. Concurrency
-serializes city runs; neither `main` nor the Snake's `output` branch is targeted.
+The generator uses the explicit username `Jorge-Lana`, runs the bundled GitWorld
+code with `contents: read`, and does not persist checkout credentials. It validates
+the city, changes the HUD label from “commits” to “contributions”, and uploads only
+`city-public/gitworld.svg`. The separate upstream profile card is excluded.
 
-The public image URL is:
+A fresh publisher gets `contents: write`, verifies the file SHA-256 against the
+generating job's output, and independently validates the SVG using a fresh
+checkout. It never executes GitWorld. Unspecified token permissions are disabled.
+Only the built-in `GITHUB_TOKEN` is used; no PAT, new secret or dependency install
+is required. Checkout removes its temporary publication credentials on cleanup.
+
+Publication creates an orphan `city-output` branch on first run, then ordinary
+commits that stage only `gitworld.svg`. Existing history/other files are preserved;
+identical output creates no commit. Concurrency serializes runs. Pushes are never
+forced, and network/authentication/push errors fail the job. Neither `main` nor
+Snake's `output` branch is a publication target.
+
+The public URL becomes available after the first successful publication:
 
 ```text
 https://raw.githubusercontent.com/Jorge-Lana/Jorge-Lana/city-output/gitworld.svg
 ```
 
-This URL will not exist until the first successful publication. The README
-change should therefore be activated only after the workflow has been validated.
+## Node.js 24 and reviewed Action pins
 
-## Reviewed upstream behavior and limitations
+| Action | Release | Immutable SHA | Declared runtime |
+| --- | --- | --- | --- |
+| actions/checkout | v6.1.0 | `d23441a48e516b6c34aea4fa41551a30e30af803` | node24 |
+| actions/upload-artifact | v7.0.2 | `cf430e030ddbb5b0abf93d22962f4752f3646cd9` | node24 |
+| actions/download-artifact | v8.0.2 | `9000827ccba6bdab643e8b6fd33ac0654aef8333` | node24 |
+| Dasmat13/git-world-action | reviewed commit | `76fe1d0ad8b59801e0352616cd040eece376c8cb` | node20 metadata; Node 24 locally exercised |
 
-GitWorld is pinned to
-[`76fe1d0ad8b59801e0352616cd040eece376c8cb`](https://github.com/Dasmat13/git-world-action/tree/76fe1d0ad8b59801e0352616cd040eece376c8cb).
-The action definition uses Node 20 and includes `dist/index.js`, compatible with
-GitHub-hosted Ubuntu runners without npm installation or compilation.
+Official release tags, action definitions, supplied inputs and bundled entrypoints
+were inspected. Node 24 needs runner >=2.327.1; checkout's >=2.329.0 requirement
+for authenticated Git inside Docker actions does not apply to this workflow.
+Checkout v6 stores credentials under `RUNNER_TEMP`, linked by Git-directory config;
+the publisher's branch switch preserves that directory and authentication route.
 
-Inspection of `action.yml`, `src/index.ts`, `src/github.ts`, `src/world.ts`,
-`src/renderer.ts`, `src/weather.ts` and the relevant bundled implementation found:
+Upload v7 defaults to `archive: true`; download v8 defaults to decompression and
+extracts the named artifact directly into the target directory. Both use
+`@actions/artifact ^6.3.1`. The single-file archive/name/path contract is preserved.
+Download now defaults to `digest-mismatch: error`; the independent SVG SHA-256
+check remains an additional boundary.
 
-- The city is a 900×260 SVG with CSS/SMIL animations. Its 52 weekly columns use
-  each week's **maximum daily contribution count** for height and building type.
-  These are GitHub contributions, not just commits, and not individual repositories.
-  The HUD total comes from the full contribution calendar returned by GitHub;
-  columns use only the last 52 weeks, so it is not a sum of displayed heights.
-- Stars, issues and primary languages are aggregated over at most 100 non-fork
-  repositories ordered by stars, without pagination. The biome uses the most
-  common primary language by repository count, not language byte totals.
-- Crowns are decorative rules; PRs are not queried. No accurate PR counts or
-  per-repository building mapping should be inferred. Day/night derives from
-  contribution streak, not local clock time. Streak stops at the first zero day,
-  including an incomplete current day.
-- Token-authenticated data requests go to `api.github.com/graphql`. If the public
-  profile location is nonempty, it is sent without the token to
-  `geocoding-api.open-meteo.com`, then coordinates to `api.open-meteo.com`.
-  Empty `location` input does not disable this. Weather errors use an
-  activity-based fallback; requests have no explicit timeout, so the job has one.
-- GitWorld also writes `profile-card.svg`, containing preset biography/skills
-  and an issue-derived number labeled as PRs. That card is neither uploaded nor
-  published; its external Google Fonts import is also excluded from the city.
-- The city itself has no external assets in the reviewed renderer. The local
-  validator checks the expected identity, dimensions, elements, animation and
-  obvious external/active content. It is targeted validation of pinned output,
-  not a general-purpose sanitizer for arbitrary hostile SVGs.
+The unchanged pinned GitWorld bundle was actually executed on **Node v24.22.1**,
+not merely syntax-checked. Mocked active, zero-contribution and location/weather
+responses all produced valid city SVGs, including CSS/SMIL animation. No fork or
+upstream code edit was necessary. Its metadata still declares `node20`: the real
+hosted runner's Node 24 runtime selection, authentication and artifact services
+remain unverified until the post-merge run. Do not interpret local simulations
+as GitHub-hosted success. The supplied Node 20 retirement changelog URL returned
+HTTP 403 in this environment, so local runtime/source evidence is reported here.
 
-All new external `uses:` references are pinned to reviewed 40-character SHAs:
+## SVG validation boundary
 
-| Action | Version / SHA |
-| --- | --- |
-| GitWorld | `76fe1d0ad8b59801e0352616cd040eece376c8cb` |
-| actions/checkout | v4.3.1 / `34e114876b0b11c390a56381ad16ebd13914f8d5` |
-| actions/upload-artifact | v4.6.2 / `ea165f8d65b6e75b540449e92b4886f43607fa02` |
-| actions/download-artifact | v4.3.0 / `d3f86a106a0bac45b974a628896c90dbdf5c8093` |
+`prepare_city.py` uses only the Python standard library. After XML parsing, it
+checks **decoded attribute values and style text**, including numeric XML
+references. It accepts the pinned SVG namespace, reviewed element/attribute sets,
+900×260 dimensions, expected identity, CSS keyframes and SMIL `animateMotion`.
 
-The download action warns rather than failing on its archive digest mismatch;
-the explicit cross-job file hash check makes an SVG byte mismatch fail here.
-SHA pins freeze executable code, not the runner image, GitHub/Open-Meteo services
-or platform artifact storage. Review upstream changes and runtimes before updates.
-No complete dependency vulnerability audit or reproducible bundle rebuild was
-performed: dependencies were not installed. Upstream's README advertises MIT but
-the reviewed tree has no LICENSE file. Its feature table overstates repo/PR
-mapping. The existing Snake workflow's mutable action tags remain unchanged to
-preserve the working fallback; they are pre-existing maintenance concerns.
+It rejects DTD/entities, processing instructions, unsupported elements/attributes,
+event handlers, namespaced attributes (including `xml:base` and `xlink:href`),
+CSS escapes, unsupported CSS functions/at-rules and external resource references.
+CSS comments are removed before checking; `url(...)` must be complete and point
+to an existing internal SVG ID. Neither external CSS imports nor external images
+are supported. The label correction is byte-idempotent; other drawing bytes and
+legitimate animation are preserved.
 
-## Local validation performed
+This is targeted validation of reviewed, pinned GitWorld output, **not a generic
+SVG sanitizer** or a security proof for arbitrary CSS/browser behavior. Renderer
+updates need review and tests; unexpected syntax fails closed. It does not audit
+all upstream JavaScript/dependencies. The generator remains isolated from write
+credentials even if its output is invalid.
 
-No credentials or dependencies were added. Local temporary harnesses are outside
-the checkout, under `/tmp/city-validation/` (not part of the integration):
+## Verified upstream limitations
+
+- The city has 52 weekly columns; height/type use each week's maximum daily
+  GitHub contribution count, not individual repositories or commits. The HUD
+  total comes from the full returned calendar, not a sum of displayed heights.
+- Stars/issues and languages cover at most 100 non-fork repositories ordered by
+  stars, without pagination. The biome counts primary languages by repository,
+  not language bytes. Crowns are decorative; no PR query exists.
+- Day/night derives from streak, not local clock time. Streak stops on the first
+  zero day, including an incomplete current day.
+- Token-authenticated requests go to `api.github.com/graphql`. If public profile
+  location is nonempty, Open-Meteo receives that city string and then coordinates,
+  without the token. Empty `location` input does not disable weather. Errors fall
+  back to activity-derived weather; job timeouts limit requests without deadlines.
+- The excluded profile card contains preset biography/skills, issue-derived “PR”
+  statistics and an external Google Fonts import.
+- No full dependency audit or reproducible bundle rebuild was performed. Upstream
+  advertises MIT but the reviewed tree has no LICENSE file. Existing mutable
+  Snake Action references remain unchanged as the working fallback. Pins and
+  runtime compatibility require future maintenance/review.
+
+## Local validation
+
+Committed regression tests and the pinned zero-contribution SVG fixture run
+without network or new dependencies:
 
 ```bash
-python3 /tmp/city-validation/check-local.py
-node /tmp/city-validation/check-browser.cjs
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s .github/scripts/tests -v
 git diff --check
 ```
 
-- The actual pinned `dist/index.js` ran with an intercepted GraphQL response and
-  a dummy, non-secret token: active and zero-contribution fixtures both generated
-  SVGs. Active output contained 52 weekly buildings; zero output contained none.
-- The validator corrected both HUD labels, was byte-idempotent on revalidation,
-  and rejected 11 unsafe/invalid variants (including script, event handler,
-  external image/CSS, DTD, wrong identity, profile card, malformed/oversized XML
-  and a symlink).
-- Python's existing YAML parser checked configuration, permission boundaries,
-  job dependencies, output paths and image URL. Pinned SHAs were compared with
-  inspected action checkouts; supplied inputs matched their definitions.
-  Embedded Bash passed `bash -n`. This is not a GitHub service-side validation;
-  `actionlint` was unavailable and was not installed.
-- The exact publication shell was exercised against a **local bare Git remote**:
-  first publication, unchanged rerun and changed publication all passed. The
-  changed run preserved output history/other files; `main` and Snake fixture refs
-  remained unchanged. An unavailable remote aborted before branch creation.
-  No real GitHub branch was pushed.
-- The exact publisher verification step accepted a matching file SHA-256 and
-  failed on a mismatched hash before publishing.
-- Existing Chromium rendered the generated SVG; train transforms and star opacity
-  changed over time. The SVG also loaded and animated when embedded as an image.
-  This validates fixture rendering, not the live GitHub profile.
-- The unchanged Snake workflow and README content outside the visualization
-  block were compared with the original checkout. Existing `output` contains
-  `github-snake.svg` and `github-snake-dark.svg`.
+All 11 regression tests and the additional local checks below passed during the
+review correction. No tests were skipped.
 
-Live `GITHUB_TOKEN` GraphQL access, hosted job execution, artifact transfer, branch
-policy, public raw URL and GitHub's image rendering/cache still require validation
-after the workflow is merged. No successful GitHub Actions run is claimed.
+The tests cover valid pinned output and animation, idempotence, malformed XML,
+disallowed elements/events, external resources, numeric XML references in CSS,
+escapes/comments/functions/URLs, namespaces/PIs, identity/dimensions/profile-card
+rejection, DTD, size and symlink handling. The numeric-reference CSS regression
+was reproduced against the old validator (accepted) and the correction (rejected).
 
-## Review and staged activation (requires owner authorization)
+Additional local checks: Python AST syntax; workflow YAML, Bash syntax, SHA pins,
+runtime/input declarations and permissions; Node 24 bundle execution with active,
+zero and weather fixtures; validation of those full generated SVGs; Chromium
+rendering and animation as an embedded image. The original temporary harness also
+exercises publication against a local bare remote, including initial/no-op/update
+runs, preservation and failure paths. None of these contact GitHub's artifact
+service or publish a live SVG. `actionlint` was unavailable and not installed.
 
-No commit, push, merge or publication has been performed by this implementation.
-Keep the Snake workflow and its `output` branch throughout activation.
+## Owner-approved merge and two-phase activation
 
-1. Review all four changed files on `feat/github-city-profile`, including untracked
-   additions. Run `git diff --check`; inspect the workflow, helper and this guide.
-2. After explicitly authorizing publication, commit and push **only the workflow,
-   helper and guide** first; leave `README.md` unstaged:
-
-   ```bash
-   git add .github/workflows/city.yml .github/scripts/prepare_city.py docs/github-city.md
-   git commit -m "Add isolated daily GitHub City generation"
-   git push -u origin feat/github-city-profile
-   ```
-
-3. Open and review a PR to `main` for those three files. The owner authorizes the
-   merge. For the fast-forward sync below, use **Create a merge commit** and keep
-   the feature branch. Merging enables the next scheduled run, including its
-   publication to `city-output`. Leave the original README visible meanwhile.
-4. In GitHub Actions, select **GitHub City → Run workflow → main**. Inspect both
-   jobs and confirm success. If using an already authenticated GitHub CLI:
+1. Independently review and approve existing **PR #1**. Do not merge merely
+   because local checks pass. Keep the feature branch and Snake intact. The
+   owner can merge Phase 1 when satisfied; this enables future scheduled City
+   generation/publication while the public README still shows Snake.
+2. After merge, run **Actions → GitHub City → Run workflow → main**. Confirm
+   Node 24 execution, both jobs, token permissions, artifact transfer/hash and
+   publication to `city-output`. With an already authenticated CLI:
 
    ```bash
    gh workflow run city.yml --ref main
@@ -159,8 +155,8 @@ Keep the Snake workflow and its `output` branch throughout activation.
    gh run watch RUN_ID --exit-status
    ```
 
-5. Check `city-output` contains the city alone on its first publication and the
-   Snake branch is intact. Verify the public URL, expected account and animation:
+3. Verify the public image, correct account, contribution label and animation;
+   confirm Snake artifacts remain intact and a second run preserves history:
 
    ```bash
    curl --fail --location --output /tmp/github-city-live.svg \
@@ -168,42 +164,20 @@ Keep the Snake workflow and its `output` branch throughout activation.
    python3 .github/scripts/prepare_city.py /tmp/github-city-live.svg /tmp/github-city-checked.svg
    ```
 
-   Open the raw image in a browser. Confirm the HUD says “contributions”, no
-   unrelated card is displayed, and a second manual run preserves branch history.
-   GitHub/raw image caching can delay visible updates. If any check fails, keep
-   the README on Snake and inspect logs; do not grant extra scopes or add a PAT.
-6. Only after that validation, sync the feature branch without overwriting the
-   pending README, commit it and publish the second reviewed PR:
-
-   ```bash
-   git fetch origin main
-   git merge --ff-only origin/main
-   git add README.md
-   git commit -m "Replace contribution Snake with validated GitHub City"
-   git push origin feat/github-city-profile
-   ```
-
-   If the first PR was squash/rebase merged, stop at a failed fast-forward and
-   reconcile history through a normal review; do not reset or force-push. The
-   owner merges the README PR after review, then checks the live profile in light
-   and dark modes and observes a subsequent scheduled run.
+   If these checks fail, keep the README on Snake and inspect logs; do not add
+   a PAT or grant extra scopes. Raw/GitHub image caching can delay visible updates.
+4. Only after a real successful run and SVG validation, review and authorize the
+   separate **Phase 2 README activation PR**. Preserve the pending local edit when
+   syncing history. If Phase 1 used a merge commit, a normal fast-forward sync is
+   possible; if it was squash/rebase merged, reconcile without reset/force-push.
+   Then commit/push only the reviewed README activation, have its PR approved,
+   and check the live profile in light/dark modes and a subsequent scheduled run.
 
 ## Rollback
 
-Disable **GitHub City** in the Actions UI to stop further publication. Restore the
-previous visualization in the README with a reviewed normal commit (or revert
-only the README activation commit), replacing the City section with:
-
-```html
-<!-- Contribution snake (generated by .github/workflows/snake.yml) -->
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Jorge-Lana/Jorge-Lana/output/github-snake-dark.svg" />
-    <img alt="contribution snake" src="https://raw.githubusercontent.com/Jorge-Lana/Jorge-Lana/output/github-snake.svg" />
-  </picture>
-</p>
-```
-
-The original Snake workflow and assets remain available. Neither output branch
-needs deletion; no history rewrite or force-push is needed. Before publication,
-rollback is simply leaving these local feature-branch changes unmerged.
+Before merge, leave PR #1 unmerged; the public profile and Snake are unaffected.
+After an approved merge, disable **GitHub City** in Actions to stop publication
+and revert Phase 1 through normal reviewed commits if needed. Never delete output
+branches or rewrite history. If Phase 2 is activated later, revert only its README
+activation commit to restore the existing light/dark Snake URLs under `output`.
+The Snake workflow and its assets remain available throughout.

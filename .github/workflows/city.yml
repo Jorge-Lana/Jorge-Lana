@@ -22,7 +22,7 @@ jobs:
     outputs:
       city_sha256: ${{ steps.prepare.outputs.sha256 }}
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0 (node24)
         with:
           persist-credentials: false
 
@@ -40,7 +40,7 @@ jobs:
           echo "sha256=$(sha256sum city-public/gitworld.svg | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
 
       # Upload exactly the city; upstream also creates an unwanted profile card.
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2 (node24)
         with:
           name: github-city
           path: city-public/gitworld.svg
@@ -56,9 +56,9 @@ jobs:
     steps:
       # This fresh job runs no GitWorld code. Checkout credentials are used only
       # by the trusted publication commands and removed by checkout's cleanup.
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0 (node24)
 
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2 (node24)
         with:
           name: github-city
           path: ${{ runner.temp }}/github-city-download
