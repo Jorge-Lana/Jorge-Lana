@@ -577,37 +577,43 @@
     <rect class="win" x="877.4" y="162.0"
           width="2.5" height="2.5" fill="#fffde7" rx="0.5"
           style="animation-delay:1.9s"/></g>
-  <g class="col" data-week="51"><rect x="882.7" y="124" width="16.3" height="71"
-    fill="#f0c040" rx="1"/><rect class="win" x="889.7" y="128.0"
+  <g class="col" data-week="51"><rect x="882.7" y="114" width="16.3" height="81"
+    fill="#f0c040" rx="1"/><rect class="win" x="889.7" y="118.0"
           width="2.5" height="2.5" fill="#fffde7" rx="0.5"
           style="animation-delay:0.3s"/>
-    <rect class="win" x="894.7" y="128.0"
+    <rect class="win" x="894.7" y="118.0"
           width="2.5" height="2.5" fill="#fffde7" rx="0.5"
           style="animation-delay:0.6s"/>
-    <rect class="win" x="884.7" y="138.0"
+    <rect class="win" x="884.7" y="128.0"
           width="2.5" height="2.5" fill="#fffde7" rx="0.5"
           style="animation-delay:0.9s"/>
-    <rect class="win" x="889.7" y="138.0"
+    <rect class="win" x="889.7" y="128.0"
           width="2.5" height="2.5" fill="#fffde7" rx="0.5"
           style="animation-delay:1.2s"/>
-    <rect class="win" x="884.7" y="148.0"
+    <rect class="win" x="884.7" y="138.0"
           width="2.5" height="2.5" fill="#fffde7" rx="0.5"
           style="animation-delay:1.8s"/>
-    <rect class="win" x="894.7" y="148.0"
+    <rect class="win" x="894.7" y="138.0"
           width="2.5" height="2.5" fill="#fffde7" rx="0.5"
           style="animation-delay:2.4s"/>
-    <rect class="win" x="889.7" y="158.0"
+    <rect class="win" x="889.7" y="148.0"
           width="2.5" height="2.5" fill="#fffde7" rx="0.5"
           style="animation-delay:3.0s"/>
-    <rect class="win" x="894.7" y="158.0"
+    <rect class="win" x="894.7" y="148.0"
           width="2.5" height="2.5" fill="#fffde7" rx="0.5"
           style="animation-delay:3.3s"/>
-    <rect class="win" x="884.7" y="168.0"
+    <rect class="win" x="884.7" y="158.0"
           width="2.5" height="2.5" fill="#fffde7" rx="0.5"
           style="animation-delay:3.6s"/>
-    <rect class="win" x="889.7" y="168.0"
+    <rect class="win" x="889.7" y="158.0"
           width="2.5" height="2.5" fill="#fffde7" rx="0.5"
-          style="animation-delay:3.9s"/></g>
+          style="animation-delay:3.9s"/>
+    <rect class="win" x="884.7" y="168.0"
+          width="2.5" height="2.5" fill="#fffde7" rx="0.5"
+          style="animation-delay:4.5s"/>
+    <rect class="win" x="894.7" y="168.0"
+          width="2.5" height="2.5" fill="#fffde7" rx="0.5"
+          style="animation-delay:0.1s"/></g>
 
   <!-- Train -->
   
@@ -675,13 +681,13 @@
   <g>
     <rect x="8" y="8" width="200" height="22" rx="4" fill="rgba(0,0,0,0.5)"/>
     <text x="14" y="22" font-family="monospace" font-size="10" fill="#ffd700">
-      🌍 Jorge-Lana's GitWorld · 102 contributions
+      🌍 Jorge-Lana's GitWorld · 106 contributions
     </text>
   </g>
   <g>
     <rect x="782" y="8" width="110" height="22" rx="4" fill="rgba(0,0,0,0.5)"/>
     <text x="788" y="22" font-family="monospace" font-size="10" fill="#ffd700">
-      🔥 0d streak
+      🔥 2d streak
     </text>
   </g>
 
