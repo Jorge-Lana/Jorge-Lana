@@ -33,10 +33,20 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           svg_out_path: city-build/gitworld.svg
 
-      - name: Validate the city and correct the contribution label
+      - name: Validate, render the dark city, or retain the working flat city
         id: prepare
         run: |
-          python3 .github/scripts/prepare_city.py city-build/gitworld.svg city-public/gitworld.svg
+          # The validated flat city remains a usable fallback if the local
+          # renderer or its output fails. Never publish an unvalidated image.
+          python3 .github/scripts/prepare_city.py city-build/gitworld.svg city-build/flat-validated.svg
+          if python3 .github/scripts/render_city.py city-build/flat-validated.svg city-build/dark.svg \
+            && python3 .github/scripts/prepare_city.py city-build/dark.svg city-public/gitworld.svg; then
+            echo 'Validated dark city selected.'
+          else
+            echo '::warning::Dark rendering failed; publishing the validated flat fallback.'
+            mkdir -p city-public
+            cp city-build/flat-validated.svg city-public/gitworld.svg
+          fi
           echo "sha256=$(sha256sum city-public/gitworld.svg | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
 
       # Upload exactly the city; upstream also creates an unwanted profile card.

@@ -15,6 +15,12 @@ import xml.etree.ElementTree as ET
 HERE = Path(__file__).resolve().parent
 prepare = runpy.run_path(str(HERE.parent / "prepare_city.py"))["prepare"]
 CITY = (HERE / "fixtures" / "gitworld-zero.svg").read_text(encoding="utf-8")
+# Structure-only profile fixture: full visual rendering is exercised separately
+# by the local renderer tests. Keep the legacy fixture unchanged for rollback.
+DARK_CITY = (CITY.replace('<svg ', '<svg data-theme="dark-isometric-v1" role="img" ', 1)
+             .replace('width="900" height="260"', 'width="1200" height="720"', 1)
+             .replace('viewBox="0 0 900 260"', 'viewBox="0 0 1200 720"', 1)
+             .replace('<defs>', '<title>Night City</title><desc>Weekly activity</desc><defs>', 1))
 
 
 class CityValidationTests(unittest.TestCase):
@@ -30,6 +36,7 @@ class CityValidationTests(unittest.TestCase):
         return self.output.read_text(encoding="utf-8")
 
     def reject(self, svg):
+        self.output.unlink(missing_ok=True)
         self.source.write_text(svg, encoding="utf-8")
         with self.assertRaises((ValueError, ET.ParseError)):
             prepare(self.source, self.output)
@@ -104,6 +111,35 @@ class CityValidationTests(unittest.TestCase):
         self.source.symlink_to(HERE / "fixtures" / "gitworld-zero.svg")
         with self.assertRaises(ValueError):
             prepare(self.source, self.output)
+
+    def test_dark_profile_and_idempotence(self):
+        first = self.validate(DARK_CITY)
+        self.assertEqual(first, DARK_CITY.replace("0 commits", "0 contributions"))
+        self.assertEqual(first, self.validate(first))
+
+    def test_dark_only_dimensions_and_attributes(self):
+        for old, new in (("dark-isometric-v1", "unreviewed-theme"),
+                         ('width="1200"', 'width="900"'),
+                         ('height="720"', 'height="260"')):
+            with self.subTest(old=old):
+                self.reject(DARK_CITY.replace(old, new, 1))
+        self.reject(CITY.replace('<svg ', '<svg role="img" ', 1))
+        self.reject(DARK_CITY.replace('<svg ', '<svg href="#sky" ', 1))
+        self.reject(DARK_CITY.replace('<svg ', '<svg xml:base="//example.invalid/" ', 1))
+
+    def test_dark_reduced_motion_and_transforms(self):
+        css = '@media (prefers-reduced-motion: reduce) { .moving { display:none; } .light { animation:none; } }'
+        svg = DARK_CITY.replace('<style>', '<style>' + css, 1)
+        svg = svg.replace('<g>', '<g transform="translate(1,2)" data-intensity="0.5">', 1)
+        self.assertIn(css, self.validate(svg))
+        self.reject(CITY.replace('<style>', '<style>' + css, 1))
+
+    def test_dark_css_security_boundary(self):
+        for css in ('@media (prefers-color-scheme: dark) { .star { opacity:0; } }',
+                    '@media (prefers-reduced-motion: reduce) { .star { fill:u&#114;l(//example.invalid/x); } }',
+                    '@import "//example.invalid/x";', r'.star { fill:u\72l(//example.invalid/x); }'):
+            with self.subTest(css=css):
+                self.reject(DARK_CITY.replace('<style>', '<style>' + css, 1))
 
 
 if __name__ == "__main__":
